@@ -59,32 +59,6 @@ var label
 
 function main() {
 
-    // Setup our camera movement sliders
-    slider_input = document.getElementById('sliderEyeZ')
-    slider_input.addEventListener('input', (event) => {
-        updateEyeZ(event.target.value)
-    })
-    slider_input = document.getElementById('sliderCenterZ')
-    slider_input.addEventListener('input', (event) => {
-        updateCenterZ(event.target.value)
-    })
-    slider_input = document.getElementById('sliderEyeY')
-    slider_input.addEventListener('input', (event) => {
-        updateEyeY(event.target.value)
-    })
-    slider_input = document.getElementById('sliderCenterY')
-    slider_input.addEventListener('input', (event) => {
-        updateCenterY(event.target.value)
-    })
-    slider_input = document.getElementById('sliderEyeX')
-    slider_input.addEventListener('input', (event) => {
-        updateEyeX(event.target.value)
-    })
-    slider_input = document.getElementById('sliderCenterX')
-    slider_input.addEventListener('input', (event) => {
-        updateCenterX(event.target.value)
-    })
-
     g_canvas = document.getElementById('canvas');
     gl = getWebGLContext(g_canvas, true);
     if (!gl) {
@@ -160,9 +134,9 @@ function startRendering() {
     updateEyeX(-1)
     updateEyeY(0.14)
     updateEyeZ(-1.0)
-    updateCenterX(1.0)
+    updateCenterX(0.0)
     updateCenterY(0.0)
-    updateCenterZ(-1.0)
+    updateCenterZ(0.0)
     tick();
 }
 
@@ -436,38 +410,26 @@ function runDog() {
 
 // functions from lecture code
 function updateEyeX(amount) {
-    label = document.getElementById('eyeX')
-    label.textContent = `Eye X: ${Number(amount).toFixed(2)}`
     g_eye_x = Number(amount)
 }
 
 function updateEyeY(amount) {
-    label = document.getElementById('eyeY')
-    label.textContent = `Eye Y: ${Number(amount).toFixed(2)}`
     g_eye_y = Number(amount)
 }
 
 function updateEyeZ(amount) {
-    label = document.getElementById('eyeZ')
-    label.textContent = `Eye Z: ${Number(amount).toFixed(2)}`
     g_eye_z = Number(amount)
 }
 
 function updateCenterX(amount) {
-    label = document.getElementById('eyeX')
-    label.textContent = `Eye X: ${Number(amount).toFixed(2)}`
     g_center_x = Number(amount)
 }
 
 function updateCenterY(amount) {
-    label = document.getElementById('eyeY')
-    label.textContent = `Eye Y: ${Number(amount).toFixed(2)}`
     g_center_y = Number(amount)
 }
 
 function updateCenterZ(amount) {
-    label = document.getElementById('centerZ')
-    label.textContent = `Center Z: ${Number(amount).toFixed(2)}`
     g_center_z = Number(amount)
 }
 
@@ -475,39 +437,108 @@ function resetCam(){
     updateEyeX(-1)
     updateEyeY(0.14)
     updateEyeZ(-1.0)
-    updateCenterX(1.0)
+    updateCenterX(0.0)
     updateCenterY(0.0)
-    updateCenterZ(-1.0)
+    updateCenterZ(0.0)
+    g_cameraQuaternion = new Quaternion(0, 0.89, 0,  -0.44);
 }
 
-function setLookVector(){
+// Extras:::
+var g_cameraQuaternion = new Quaternion(0, 0.89, 0,  -0.44);
+var g_forwardVector = new Vector3([0, 0, -1]);  // Default forward
+
+function updateCameraRotation(deltaX, deltaY) {
+    let rotX = new Quaternion();
+    rotX.setFromAxisAngle(1, 0, 0, deltaY * 0.2); // X-axis rotation
+    let rotY = new Quaternion();
+    rotY.setFromAxisAngle(0, 1, 0, deltaX * 0.2); // Y-axis rotation
+
+    // Combine rotations and update the global camera quaternion
+    g_cameraQuaternion.multiply(rotY, g_cameraQuaternion);
+    g_cameraQuaternion.multiply(rotX, g_cameraQuaternion);
+
+    // Convert quaternion to rotation matrix
+    var rotationMatrix = new Matrix4().setFromQuat(
+        g_cameraQuaternion.x, g_cameraQuaternion.y, g_cameraQuaternion.z, g_cameraQuaternion.w
+    );
+
+    // Calculate new forward and up vectors
+    var forwardVector = rotationMatrix.multiplyVector3(new Vector3(0, 0, -1)); // Forward vector
+    var upVector = rotationMatrix.multiplyVector3(new Vector3(0, 1, 0));       // Up vector
+
+    // Update the eye position based on the new look vector, if necessary
+    g_eye_x += forwardVector.elements[0];
+    g_eye_y += forwardVector.elements[1];
+    g_eye_z += forwardVector.elements[2];
+
+}
+
+function wiggleCamera(moveRight) {
+    let angle = moveRight ? -Math.PI / 2 : Math.PI / 2;
+    let sideQuaternion = new Quaternion().setFromAxisAngle(1, 0, 0, angle);
+    let forwardVector = new Vector3([0, 0, -1]);
+    let sideVector = sideQuaternion.multiplyVector3(forwardVector); // Rotates the forward vector to get the side vector
+    g_eye_x += sideVector.elements[0] * 0.1;
+    g_eye_y += sideVector.elements[1] * 0.1; 
+    g_eye_z += sideVector.elements[2] * 0.1;
+}
+
+
+document.addEventListener('keydown', function (event) {
+    switch (event.key) {
+        case 'ArrowDown':
+            moveCamera(true);  // Move forward
+            break;
+        case 'ArrowUp':
+            moveCamera(false);  // Move backward
+            break;
+        case 'ArrowLeft':
+            wiggleCamera(false);  // Move left
+            break;
+        case 'ArrowRight':
+            wiggleCamera(true);  // Move right
+            break;
+        case 'w':
+            updateCameraRotation(0, -5);  // Look up
+            break;
+        case 's':
+            updateCameraRotation(0, 5);  // Look down
+            break;
+        case 'a':
+            updateCameraRotation(-5, 0);  // Look left
+            break;
+        case 'd':
+            updateCameraRotation(5, 0);  // Look right
+            break;
+    }
+});
+
+
+function moveCamera(forward) {
+    var speed = 0.1;  // Movement speed
+    if (forward) {
+        g_eye_x += g_forwardVector.elements[0] * speed;
+        g_eye_y += g_forwardVector.elements[1] * speed;
+        g_eye_z += g_forwardVector.elements[2] * speed;
+    } else {
+        g_eye_x -= g_forwardVector.elements[0] * speed;
+        g_eye_y -= g_forwardVector.elements[1] * speed;
+        g_eye_z -= g_forwardVector.elements[2] * speed;
+    }
+}
+
+
+function setLookVector() {
+    // var rotationMatrix = quaternionToMatrix4(g_cameraQuaternion);
+    var rotationMatrix = new Matrix4().setFromQuat(g_cameraQuaternion.x, g_cameraQuaternion.y, g_cameraQuaternion.z, g_cameraQuaternion.w )
+    var lookDirection = rotationMatrix.multiplyVector3(new Vector3([0, 0, -1])); // Forward vector
+    var upDirection = rotationMatrix.multiplyVector3(new Vector3([0, 1, 0]));    // Up vector
+
     return new Matrix4().setLookAt(
         g_eye_x, g_eye_y, g_eye_z,
-        // negate Z for right-handed coordinates here
-        g_center_x, g_center_y, -g_center_z,
-        0, 1, 0
+        g_eye_x + lookDirection.elements[0], g_eye_y + lookDirection.elements[1], g_eye_z + lookDirection.elements[2],
+        upDirection.elements[0], upDirection.elements[1], upDirection.elements[2]
     );
-}
-
-// New Code
-// quarternions
-let cameraQuaternion = new Quaternion();
-
-function updateCameraRotation(input) {
-    let yaw = Quaternion.fromAxisAngle([0, 1, 0], degreesToRadians(input.yaw));
-    let pitch = Quaternion.fromAxisAngle([1, 0, 0], degreesToRadians(input.pitch));
-    cameraQuaternion = yaw.multiply(cameraQuaternion).multiply(pitch);
-}
-
-function updateCameraPosition(input) {
-    let rotMatrix = cameraQuaternion.toMatrix4();
-    let forward = rotMatrix.multiplyVec3([0, 0, -1]);
-    let right = rotMatrix.multiplyVec3([1, 0, 0]);
-
-    if (input.forward) cameraPosition = cameraPosition.add(forward.scale(input.moveSpeed));
-    if (input.backward) cameraPosition = cameraPosition.subtract(forward.scale(input.moveSpeed));
-    if (input.strafeRight) cameraPosition = cameraPosition.add(right.scale(input.moveSpeed));
-    if (input.strafeLeft) cameraPosition = cameraPosition.subtract(right.scale(input.moveSpeed));
 }
 
 

@@ -29,36 +29,13 @@
         <input type="button" onclick="stopDog()" value="Stop Running!">
         <input type="button" onclick="resetCam()" value="Reset Camera">
     </p>
-    <!-- Add camera controls  -->
-    <div>
-        <input type="range" id="sliderEyeZ" min="-1" max="1" step=".01" />
-        <label id="eyeZ" for="sliderEyeZ">sliderEyeZ</label>
-    </div>
-    <div>
-        <input type="range" id="sliderCenterZ" min="-1" max="1" step=".01" />
-        <label id="centerZ" for="sliderCenterZ">sliderCenterZ</label>
-    </div>
-    <div>
-        <input type="range" id="sliderEyeY" min="-1" max="1" step=".01" />
-        <label id="eyeY" for="sliderEyeY">sliderEyeY</label>
-    </div>
-    <div>
-        <input type="range" id="sliderCenterY" min="-1" max="1" step=".01" />
-        <label id="centerY" for="sliderCenterY">sliderCenterY</label>
-    </div>
-    <div>
-        <input type="range" id="sliderEyeX" min="-1" max="1" step=".01" />
-        <label id="eyeX" for="sliderEyeX">sliderEyeX</label>
-    </div>
-    <div>
-        <input type="range" id="sliderCenterX" min="-1" max="1" step=".01" />
-        <label id="centerX" for="sliderCenterX">sliderCenterX</label>
-    </div>
     
     <!-- Instructions for controlling the model -->
     <div id="instructions" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9;">
         <h3>Model Instructions</h3>
         <ul>
+            <li><strong>w, a, s, d:</strong> Rotate the camera on its axis</li>
+            <li><strong>Up Arrow + Down Arror:</strong> Move the camera in forward, and backwards in its direction</li>
             <li><strong>Dog 1 Jump:</strong> Makes the Dog jump.</li>
             <li><strong>Dog Run Faster!!:</strong> Increases the speed of the dog if it is running, or makes the dog start running.</li>
             <li><strong>Stop Running!:</strong> Stops the dog's movement.</li>
