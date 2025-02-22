@@ -1,0 +1,46 @@
+<!-- Last edited by Dietrich Geisler 2025 -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<header>
+    <!-- Sets an icon for the page -->
+    <link rel="icon" type="image/x-icon" href="/resources/favicon.ico">
+</header>
+
+<body onload="main()">
+    <!-- WebGL Utility Scripts -->
+    <script src="lib/webgl-utils.js"></script>
+    <script src="lib/webgl-debug.js"></script>
+    <script src="lib/cuon-utils.js"></script>
+    <script src="lib/cuon-matrix-quat03.js"></script>
+
+    <!-- Select a JavaScript file -->
+    <script src="quaternion.js"></script>
+
+    <!-- Setup the Canvas -->
+    <canvas id="canvas" width="400" height="400">
+        Please use a browser that supports "canvas"
+    </canvas>
+
+    <!-- Rotation Controls -->
+    <div>
+        <input type="range" id="sliderX" min="-1" max="1" step=".01" value="0" />
+        <label id="x" for="sliderX"></label>
+    </div>
+    <div>
+        <input type="range" id="sliderY" min="-1" max="1" step=".01" value="0" />
+        <label id="y" for="sliderY"></label>
+    </div>
+    <div>
+        <input type="range" id="sliderZ" min="-1" max="1" step=".01" value="0" />
+        <label id="z" for="sliderZ"></label>
+    </div>
+    <div>
+        <input type="range" id="sliderW" min="-1" max="1" step=".01" value="1" />
+        <label id="w" for="sliderW"></label>
+    </div>
+
+</body>
+
+</html>

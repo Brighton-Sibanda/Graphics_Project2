@@ -1,0 +1,76 @@
+<!-- Last edited by Brighton Sibanda 2025 -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<header>
+    <!-- Sets an icon for the page -->
+    <link rel="icon" type="image/x-icon" href="/resources/favicon.ico">
+</header>
+
+<body onload="main()">
+    <!-- WebGL Utility Scripts -->
+    <script src="lib/webgl-utils.js"></script>
+    <script src="lib/webgl-debug.js"></script>
+    <script src="lib/cuon-utils.js"></script>
+    <script src="lib/cuon-matrix-quat03.js"></script>
+
+    <!-- Select a JavaScript file -->
+    <script type="module" src="project2.js"></script>
+
+    <!-- Setup the Canvas -->
+    <canvas id="canvas" width="400" height="400">
+        Please use a browser that supports "canvas"
+    </canvas>
+
+    <p>
+        <input type="button" onclick="jumpDogOne()" value="Dog 1 Jump">
+        <input type="button" onclick="runDog()" value="Dog Run Faster!!">
+        <input type="button" onclick="stopDog()" value="Stop Running!">
+        <input type="button" onclick="resetCam()" value="Reset Camera">
+    </p>
+    <!-- Add camera controls  -->
+    <div>
+        <input type="range" id="sliderEyeZ" min="-1" max="1" step=".01" />
+        <label id="eyeZ" for="sliderEyeZ">sliderEyeZ</label>
+    </div>
+    <div>
+        <input type="range" id="sliderCenterZ" min="-1" max="1" step=".01" />
+        <label id="centerZ" for="sliderCenterZ">sliderCenterZ</label>
+    </div>
+    <div>
+        <input type="range" id="sliderEyeY" min="-1" max="1" step=".01" />
+        <label id="eyeY" for="sliderEyeY">sliderEyeY</label>
+    </div>
+    <div>
+        <input type="range" id="sliderCenterY" min="-1" max="1" step=".01" />
+        <label id="centerY" for="sliderCenterY">sliderCenterY</label>
+    </div>
+    <div>
+        <input type="range" id="sliderEyeX" min="-1" max="1" step=".01" />
+        <label id="eyeX" for="sliderEyeX">sliderEyeX</label>
+    </div>
+    <div>
+        <input type="range" id="sliderCenterX" min="-1" max="1" step=".01" />
+        <label id="centerX" for="sliderCenterX">sliderCenterX</label>
+    </div>
+    
+    <!-- Instructions for controlling the model -->
+    <div id="instructions" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9;">
+        <h3>Model Instructions</h3>
+        <ul>
+            <li><strong>Dog 1 Jump:</strong> Makes the Dog jump.</li>
+            <li><strong>Dog Run Faster!!:</strong> Increases the speed of the dog if it is running, or makes the dog start running.</li>
+            <li><strong>Stop Running!:</strong> Stops the dog's movement.</li>
+            <li><strong>Make Orthographic:</strong> Switches to orthographic view.</li>
+            <li><strong>Make Perspective:</strong> Switches to perspective view.</li>
+            <li><strong>Slider Eye Z:</strong> Adjusts the eye position along the Z-axis.</li>
+            <li><strong>Slider Center Z:</strong> Adjusts the center position along the Z-axis.</li>
+            <li><strong>Additional Information:</strong> The cat plays with the ball, independently with no instruction</li>
+            <li><strong>Additional Information:</strong> The UFO (cube) with a rotating handle also moves independently, as well as the rectangular UFO </li>
+        </ul>
+    </div>
+
+</body>
+
+</html>
