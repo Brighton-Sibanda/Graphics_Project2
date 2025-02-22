@@ -1,8 +1,8 @@
 // Last Edited by Brighton Sibanda 2025
 // ACKNOWLEDGEMENTS::
 
-// CS 351 Winter 2025 Lecture 10, Lecture 11, and lecture 9 code - camera projections, lookat
-// Slider event trigger functions from lecture
+// CS 351 Winter 2025 Lecture 12, Lecture 10, Lecture 11, and lecture 9 code - camera projections, lookat
+// Slider event trigger functions from lecture, and terrain building functions
 // Starter Code
 
 
@@ -55,10 +55,16 @@ var g_center_y
 var g_center_z
 var slider_input
 var label
+var g_cameraQuaternion = new Quaternion(0, 0.89, 0,  -0.44);
+var g_forwardVector = new Vector3([0, 0, -1]);  // Default forward
+
+// initials for models
+let dogMovingForward = true;
+let dogMoveProgress = 0;
+let dogRunning = false;
 
 
 function main() {
-
     g_canvas = document.getElementById('canvas');
     gl = getWebGLContext(g_canvas, true);
     if (!gl) {
@@ -72,7 +78,6 @@ async function loadOBJFiles() {
     let catData = await fetch('./resources/cat.obj').then(response => response.text());
     let dogData = await fetch('./resources/dog.obj').then(response => response.text());
     let ballData = await fetch('./resources/ball.obj').then(response => response.text());
-
 
     g_dogMesh = [];
     g_ballMesh = [];
@@ -130,7 +135,7 @@ function startRendering() {
 
     g_lastFrameMS = Date.now();
 
-    // Initial fit for my view for my view
+    // Initial fit for my view
     updateEyeX(-1)
     updateEyeY(0.14)
     updateEyeZ(-1.0)
@@ -141,7 +146,7 @@ function startRendering() {
 }
 
 function draw() {
-    // directly set our world matrix to be the lookat matrix we want
+    // Set the lookat vector
     var lookatMatrix = setLookVector();
     gl.clearColor(0.2, 0.2, 0.2, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -182,7 +187,6 @@ function draw() {
     gl.uniformMatrix4fv(g_u_projection_ref, false, g_projection_matrix.elements); // adding for projection
     gl.drawArrays(gl.TRIANGLES, (g_catMesh.length + g_dogMesh.length + g_ballMesh.length + g_cubeMesh.length + g_arm1Mesh.length) / 3, g_arm2Mesh.length / 3);
 
-
     // grid
     gl.uniformMatrix4fv(g_u_model_ref, false, new Matrix4().elements);
     gl.uniformMatrix4fv(g_u_world_ref, false, lookatMatrix.invert().translate(0, GRID_Y_OFFSET, 0).elements); // maybe change this
@@ -208,6 +212,13 @@ function tick() {
         bounceCat();
     }
 
+    moveCubes();
+
+    draw();
+    requestAnimationFrame(tick, g_canvas);
+}
+
+function moveCubes() {
     // 1Cube oscillation: Move back and forth
     let maxCubeMove = 0.3; // Maximum movement distance
     let moveSpeed = 1.5; // Speed of oscillation
@@ -242,12 +253,7 @@ function tick() {
     arm2_transform.rotate(-armRotationAngle, 0, 1, 0);
     arm2_transform.translate(-0.1, 0.0, 0.0);
     g_arm2ModelMatrix = arm2_transform;
-
-    draw();
-    requestAnimationFrame(tick, g_canvas);
 }
-
-/* My additional functions start here */
 
 function init() {
     // rotate the cat and push the dog and wold away for visibility
@@ -378,10 +384,6 @@ function bounceCat() {
     }
 }
 
-let dogMovingForward = true;
-let dogMoveProgress = 0;
-let dogRunning = false;
-
 function moveDog() {
     if (!dogRunning) {
         return;
@@ -433,6 +435,7 @@ function updateCenterZ(amount) {
     g_center_z = Number(amount)
 }
 
+// reset to defaults
 function resetCam(){
     updateEyeX(-1)
     updateEyeY(0.14)
@@ -444,16 +447,13 @@ function resetCam(){
 }
 
 // Extras:::
-var g_cameraQuaternion = new Quaternion(0, 0.89, 0,  -0.44);
-var g_forwardVector = new Vector3([0, 0, -1]);  // Default forward
-
 function updateCameraRotation(deltaX, deltaY) {
     let rotX = new Quaternion();
-    rotX.setFromAxisAngle(1, 0, 0, deltaY * 0.2); // X-axis rotation
+    rotX.setFromAxisAngle(1, 0, 0, deltaY * 0.5); // X-axis rotation
     let rotY = new Quaternion();
-    rotY.setFromAxisAngle(0, 1, 0, deltaX * 0.2); // Y-axis rotation
+    rotY.setFromAxisAngle(0, 1, 0, deltaX * 0.5); // Y-axis rotation
 
-    // Combine rotations and update the global camera quaternion
+    // Combine rotations
     g_cameraQuaternion.multiply(rotY, g_cameraQuaternion);
     g_cameraQuaternion.multiply(rotX, g_cameraQuaternion);
 
@@ -464,23 +464,12 @@ function updateCameraRotation(deltaX, deltaY) {
 
     // Calculate new forward and up vectors
     var forwardVector = rotationMatrix.multiplyVector3(new Vector3(0, 0, -1)); // Forward vector
-    var upVector = rotationMatrix.multiplyVector3(new Vector3(0, 1, 0));       // Up vector
 
-    // Update the eye position based on the new look vector, if necessary
+    // Update the eye position based on the new lookat vector
     g_eye_x += forwardVector.elements[0];
     g_eye_y += forwardVector.elements[1];
     g_eye_z += forwardVector.elements[2];
 
-}
-
-function wiggleCamera(moveRight) {
-    let angle = moveRight ? -Math.PI / 2 : Math.PI / 2;
-    let sideQuaternion = new Quaternion().setFromAxisAngle(1, 0, 0, angle);
-    let forwardVector = new Vector3([0, 0, -1]);
-    let sideVector = sideQuaternion.multiplyVector3(forwardVector); // Rotates the forward vector to get the side vector
-    g_eye_x += sideVector.elements[0] * 0.1;
-    g_eye_y += sideVector.elements[1] * 0.1; 
-    g_eye_z += sideVector.elements[2] * 0.1;
 }
 
 
@@ -491,12 +480,6 @@ document.addEventListener('keydown', function (event) {
             break;
         case 'ArrowUp':
             moveCamera(false);  // Move backward
-            break;
-        case 'ArrowLeft':
-            wiggleCamera(false);  // Move left
-            break;
-        case 'ArrowRight':
-            wiggleCamera(true);  // Move right
             break;
         case 'w':
             updateCameraRotation(0, -5);  // Look up
@@ -529,7 +512,6 @@ function moveCamera(forward) {
 
 
 function setLookVector() {
-    // var rotationMatrix = quaternionToMatrix4(g_cameraQuaternion);
     var rotationMatrix = new Matrix4().setFromQuat(g_cameraQuaternion.x, g_cameraQuaternion.y, g_cameraQuaternion.z, g_cameraQuaternion.w )
     var lookDirection = rotationMatrix.multiplyVector3(new Vector3([0, 0, -1])); // Forward vector
     var upDirection = rotationMatrix.multiplyVector3(new Vector3([0, 1, 0]));    // Up vector
@@ -540,7 +522,6 @@ function setLookVector() {
         upDirection.elements[0], upDirection.elements[1], upDirection.elements[2]
     );
 }
-
 
 
 // export to html
