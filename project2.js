@@ -6,7 +6,7 @@
 // Starter Code
 
 
-import { VSHADER_SOURCE, FSHADER_SOURCE, buildColorAttributes, buildGridAttributes, initVBO, setupVec3 } from './utils.js';
+import { VSHADER_SOURCE, FSHADER_SOURCE, buildColorAttributes, buildGridAttributes, initVBO, setupVec3, buildTerrainColors } from './utils.js';
 import { g_cubeMesh, g_arm1Mesh, g_arm2Mesh } from './extras.js';
 
 // Variables 
@@ -17,7 +17,6 @@ var g_u_world_ref;
 var g_catMesh;
 var g_dogMesh;
 var g_ballMesh;
-var g_gridMesh;
 var g_world_matrix;
 var g_projection_matrix;
 var g_u_projection_ref;
@@ -53,9 +52,7 @@ var g_eye_z
 var g_center_x
 var g_center_y
 var g_center_z
-var slider_input
-var label
-var g_cameraQuaternion = new Quaternion(0, 0.89, 0,  -0.44);
+var g_cameraQuaternion = new Quaternion(0, 0.89, 0, -0.44);
 var g_forwardVector = new Vector3([0, 0, -1]);  // Default forward
 
 // initials for models
@@ -63,6 +60,25 @@ let dogMovingForward = true;
 let dogMoveProgress = 0;
 let dogRunning = false;
 
+// Terrain Stuff
+var terrainGenerator = new TerrainGenerator();
+var seed = new Date().getMilliseconds();
+var options = { 
+    width: 100, 
+    height: 1, 
+    depth: 100, 
+    seed: 10000000000000,
+    noisefn: "wave", // Other options are "simplex" and "perlin"
+    roughness: 200
+};
+var terrain = terrainGenerator.generateTerrainMesh(options)
+var g_terrainMesh = []
+    for (var i = 0; i < terrain.length; i++) {
+        g_terrainMesh.push(...terrain[i])
+    }
+var terrainColors = buildTerrainColors(terrain, options.height)
+console.log(g_terrainMesh)
+console.log(terrainColors)
 
 function main() {
     g_canvas = document.getElementById('canvas');
@@ -93,9 +109,6 @@ function startRendering() {
         console.log('Failed to initialize shaders.');
         return;
     }
-
-    var gridInfo = buildGridAttributes(1, 1, [0.0, 1.0, 0.0]);
-    g_gridMesh = gridInfo[0];
     var catColors = buildColorAttributes(g_catMesh.length / 3, [1, 0, 0]);
     var ballColors = []
     var dogColors = buildColorAttributes(g_dogMesh.length / 3, [0, 1, 0]);
@@ -105,15 +118,23 @@ function startRendering() {
     for (let i = 0; i < g_ballMesh.length / 3; i++) {
         ballColors.push(Math.random(), Math.random(), Math.random()); // Random for the ball
     }
+    console.log(catColors);
+    console.log(g_catMesh);
 
     // Add everything up to one VBO
-    var data = g_catMesh.concat(g_dogMesh).concat(g_ballMesh).concat(g_cubeMesh).concat(g_arm1Mesh).concat(g_arm2Mesh).concat(gridInfo[0])
-        .concat(catColors).concat(dogColors).concat(ballColors).concat(cubeColors).concat(arm1Colors).concat(arm2Colors).concat(gridInfo[1]);
+    var data = g_catMesh.concat(g_dogMesh).concat(g_ballMesh).concat(g_cubeMesh).concat(g_arm1Mesh).concat(g_arm2Mesh).concat(g_terrainMesh)
+        .concat(catColors).concat(dogColors).concat(ballColors).concat(cubeColors).concat(arm1Colors).concat(arm2Colors).concat(terrainColors);
 
     if (!initVBO(gl, new Float32Array(data))) return;
 
     if (!setupVec3(gl, 'a_Position', 0, 0)) return;
-    if (!setupVec3(gl, 'a_Color', 0, (g_catMesh.length + g_dogMesh.length + g_ballMesh.length + gridInfo[0].length) * FLOAT_SIZE)) return;
+    if (!setupVec3(gl, 'a_Color', 0, (g_catMesh.length +
+        g_dogMesh.length +
+        g_ballMesh.length +
+        g_cubeMesh.length +
+        g_arm1Mesh.length +
+        g_arm2Mesh.length +
+        g_terrainMesh.length) * FLOAT_SIZE)) return;
 
     g_u_model_ref = gl.getUniformLocation(gl.program, 'u_Model');
     g_u_world_ref = gl.getUniformLocation(gl.program, 'u_World');
@@ -123,6 +144,7 @@ function startRendering() {
 
     // default perspective matrix
     g_projection_matrix = new Matrix4().setPerspective(90, 1, .1, 100)
+    // g_projection_matrix = new Matrix4().setPerspective(60, g_canvas.width / g_canvas.height, 0.1, 1000)
     // scaled cat, dog and ball
     g_modelMatrices = [
         new Matrix4().setScale(0.008, 0.008, 0.008),
@@ -188,10 +210,21 @@ function draw() {
     gl.drawArrays(gl.TRIANGLES, (g_catMesh.length + g_dogMesh.length + g_ballMesh.length + g_cubeMesh.length + g_arm1Mesh.length) / 3, g_arm2Mesh.length / 3);
 
     // grid
-    gl.uniformMatrix4fv(g_u_model_ref, false, new Matrix4().elements);
-    gl.uniformMatrix4fv(g_u_world_ref, false, lookatMatrix.invert().translate(0, GRID_Y_OFFSET, 0).elements); // maybe change this
-    gl.uniformMatrix4fv(g_u_projection_ref, false, g_projection_matrix.elements); // adding for projection
-    gl.drawArrays(gl.LINES, (g_catMesh.length + g_dogMesh.length + g_ballMesh.length + g_cubeMesh.length + g_arm1Mesh.length + g_arm2Mesh.length) / 3, g_gridMesh.length / 3);
+    // Terrain
+    gl.uniformMatrix4fv(g_u_model_ref, false, new Matrix4().setTranslate(-10, 3 * GRID_Y_OFFSET, -10).elements)
+    gl.uniformMatrix4fv(g_u_world_ref, false, lookatMatrix.invert().elements)
+    gl.uniformMatrix4fv(g_u_projection_ref, false, g_projection_matrix.elements)
+    gl.drawArrays(
+        gl.TRIANGLES,
+        (g_catMesh.length +
+            g_dogMesh.length +
+            g_ballMesh.length +
+            g_cubeMesh.length +
+            g_arm1Mesh.length +
+            g_arm2Mesh.length) /
+        3,
+        g_terrainMesh.length / 3,
+    )
 }
 
 function tick() {
@@ -436,14 +469,14 @@ function updateCenterZ(amount) {
 }
 
 // reset to defaults
-function resetCam(){
+function resetCam() {
     updateEyeX(-1)
     updateEyeY(0.14)
     updateEyeZ(-1.0)
     updateCenterX(0.0)
     updateCenterY(0.0)
     updateCenterZ(0.0)
-    g_cameraQuaternion = new Quaternion(0, 0.89, 0,  -0.44);
+    g_cameraQuaternion = new Quaternion(0, 0.89, 0, -0.44);
 }
 
 // Extras:::
@@ -512,7 +545,7 @@ function moveCamera(forward) {
 
 
 function setLookVector() {
-    var rotationMatrix = new Matrix4().setFromQuat(g_cameraQuaternion.x, g_cameraQuaternion.y, g_cameraQuaternion.z, g_cameraQuaternion.w )
+    var rotationMatrix = new Matrix4().setFromQuat(g_cameraQuaternion.x, g_cameraQuaternion.y, g_cameraQuaternion.z, g_cameraQuaternion.w)
     var lookDirection = rotationMatrix.multiplyVector3(new Vector3([0, 0, -1])); // Forward vector
     var upDirection = rotationMatrix.multiplyVector3(new Vector3([0, 1, 0]));    // Up vector
 

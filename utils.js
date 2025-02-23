@@ -92,3 +92,22 @@ export function validate(first, second) {
     }
     return first;
 }
+
+
+export function buildTerrainColors(terrain, height) {
+    var colors = []
+    for (var i = 0; i < terrain.length; i++) {
+        // calculates the vertex color for each vertex independent of the triangle
+        // the rasterizer can help make this look "smooth"
+
+        // we use the y axis of each vertex alone for color
+        // higher "peaks" have more shade
+        var shade = (terrain[i][1] / height) + 1/2
+        var color = [shade, shade, 1.0]
+
+        // give each triangle 3 colors
+        colors.push(...color)
+    }
+
+    return colors
+}
