@@ -79,21 +79,6 @@ export function setupVec3(gl, name, stride, offset) {
     return true;
 }
 
-// my function to let things stay on screen
-export function validate(first, second) {
-
-    var firstElements = first.elements;
-    var maxVal = Math.max(...firstElements);
-    var minVal = Math.min(...firstElements);
-
-    if (maxVal > 1 || minVal < -1) {
-        console.log("Validation correction");
-        return second;
-    }
-    return first;
-}
-
-
 export function buildTerrainColors(terrain, height) {
     var colors = []
     for (var i = 0; i < terrain.length; i++) {

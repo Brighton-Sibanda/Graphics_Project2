@@ -43,6 +43,7 @@ var g_cubeModelMatrix;
 var g_arm1ModelMatrix;
 var g_arm2ModelMatrix;
 var g_lastFrameMS;
+var roughness = 200;
 
 
 // lookat information
@@ -63,22 +64,20 @@ let dogRunning = false;
 // Terrain Stuff
 var terrainGenerator = new TerrainGenerator();
 var seed = new Date().getMilliseconds();
-var options = { 
-    width: 100, 
-    height: 1, 
-    depth: 100, 
+var options = {
+    width: 100,
+    height: 1,
+    depth: 100,
     seed: 10000000000000,
     noisefn: "wave", // Other options are "simplex" and "perlin"
-    roughness: 200
+    roughness: roughness
 };
 var terrain = terrainGenerator.generateTerrainMesh(options)
 var g_terrainMesh = []
-    for (var i = 0; i < terrain.length; i++) {
-        g_terrainMesh.push(...terrain[i])
-    }
+for (var i = 0; i < terrain.length; i++) {
+    g_terrainMesh.push(...terrain[i])
+}
 var terrainColors = buildTerrainColors(terrain, options.height)
-console.log(g_terrainMesh)
-console.log(terrainColors)
 
 function main() {
     g_canvas = document.getElementById('canvas');
@@ -112,14 +111,12 @@ function startRendering() {
     var catColors = buildColorAttributes(g_catMesh.length / 3, [1, 0, 0]);
     var ballColors = []
     var dogColors = buildColorAttributes(g_dogMesh.length / 3, [0, 1, 0]);
-    var cubeColors = buildColorAttributes(g_cubeMesh.length / 3, [0, 1, 0]);
-    var arm1Colors = buildColorAttributes(g_arm1Mesh.length / 3, [0, 1, 0]);
-    var arm2Colors = buildColorAttributes(g_arm2Mesh.length / 3, [1, 1, 0]);
+    var cubeColors = buildColorAttributes(g_cubeMesh.length / 3, [1, 1, 0]);
+    var arm1Colors = buildColorAttributes(g_arm1Mesh.length / 3, [0, 1, 1]);
+    var arm2Colors = buildColorAttributes(g_arm2Mesh.length / 3, [1, 0, 1]);
     for (let i = 0; i < g_ballMesh.length / 3; i++) {
         ballColors.push(Math.random(), Math.random(), Math.random()); // Random for the ball
     }
-    console.log(catColors);
-    console.log(g_catMesh);
 
     // Add everything up to one VBO
     var data = g_catMesh.concat(g_dogMesh).concat(g_ballMesh).concat(g_cubeMesh).concat(g_arm1Mesh).concat(g_arm2Mesh).concat(g_terrainMesh)
@@ -442,7 +439,6 @@ function runDog() {
     moveDog();
 }
 
-
 // functions from lecture code
 function updateEyeX(amount) {
     g_eye_x = Number(amount)
@@ -482,11 +478,11 @@ function resetCam() {
 // Extras:::
 function updateCameraRotation(deltaX, deltaY) {
     let rotX = new Quaternion();
-    rotX.setFromAxisAngle(1, 0, 0, deltaY * 0.5); // X-axis rotation
+    rotX.setFromAxisAngle(1, 0, 0, deltaY * 0.5); // X rotation
     let rotY = new Quaternion();
-    rotY.setFromAxisAngle(0, 1, 0, deltaX * 0.5); // Y-axis rotation
+    rotY.setFromAxisAngle(0, 1, 0, deltaX * 0.5); // Y rotation
 
-    // Combine rotations
+    // Combine rotations here
     g_cameraQuaternion.multiply(rotY, g_cameraQuaternion);
     g_cameraQuaternion.multiply(rotX, g_cameraQuaternion);
 
@@ -529,6 +525,17 @@ document.addEventListener('keydown', function (event) {
     }
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    var slider = document.getElementById('roughness');
+    var display = document.getElementById('roughValue');
+
+    // Function to update the display when the slider value changes
+    slider.oninput = function() {
+        display.textContent = this.value;
+        roughness = Number(this.value);
+    }
+});
+
 
 function moveCamera(forward) {
     var speed = 0.1;  // Movement speed
@@ -545,7 +552,7 @@ function moveCamera(forward) {
 
 
 function setLookVector() {
-    var rotationMatrix = new Matrix4().setFromQuat(g_cameraQuaternion.x, g_cameraQuaternion.y, g_cameraQuaternion.z, g_cameraQuaternion.w)
+    var rotationMatrix = new Matrix4().setFromQuat(g_cameraQuaternion.x, g_cameraQuaternion.y, g_cameraQuaternion.z, g_cameraQuaternion.w);
     var lookDirection = rotationMatrix.multiplyVector3(new Vector3([0, 0, -1])); // Forward vector
     var upDirection = rotationMatrix.multiplyVector3(new Vector3([0, 1, 0]));    // Up vector
 
@@ -556,6 +563,31 @@ function setLookVector() {
     );
 }
 
+function regen() {
+    // change g_terrain mesh
+    // apply buffer subData
+    // Terrain Stuff
+    // TODO: Edit roughness from slider
+    options = {
+        width: 100,
+        height: 1,
+        depth: 100,
+        seed: 10000000000000,
+        noisefn: "wave", // Other options are "simplex" and "perlin"
+        roughness: roughness
+    };
+    terrain = terrainGenerator.generateTerrainMesh(options);
+    g_terrainMesh = [];
+    for (var i = 0; i < terrain.length; i++) {
+        g_terrainMesh.push(...terrain[i]);
+    }
+    terrainColors = buildTerrainColors(terrain, options.height);
+
+    let offset = FLOAT_SIZE * (g_catMesh.length + g_dogMesh.length + g_ballMesh.length + g_cubeMesh.length + g_arm1Mesh.length + g_arm2Mesh.length);
+    gl.bufferSubData(gl.ARRAY_BUFFER, offset, new Float32Array(g_terrainMesh));
+    let offset2 = offset + (FLOAT_SIZE * (g_terrainMesh.length + catColors.length + dogColors.length + ballColors.length + cubeColors.length + arm1Colors.length + arm2Colors.length));
+    gl.bufferSubData(gl.ARRAY_BUFFER, offset2, new Float32Array(terrainColors));
+}
 
 // export to html
 window.main = main;
@@ -563,3 +595,4 @@ window.jumpDogOne = jumpDogOne;
 window.runDog = runDog;
 window.stopDog = stopDog;
 window.resetCam = resetCam;
+window.regen = regen;

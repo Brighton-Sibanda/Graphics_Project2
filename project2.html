@@ -20,34 +20,39 @@
     <script type="module" src="project2.js"></script>
 
     <!-- Setup the Canvas -->
-    <canvas id="canvas" width="400" height="400">
-        Please use a browser that supports "canvas"
-    </canvas>
-
+    <div style="display: flex;">
+        <canvas id="canvas" width="700" height="700">
+            Please use a browser that supports "canvas"
+        </canvas>
+        <!-- Instructions for controlling the model -->
+        <div id="instructions" style="margin-left: 20px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; width: 700px;">
+            <h3>Model Instructions</h3>
+            <ul>
+                <li><strong>w, a, s, d:</strong> Rotate the camera on its axis</li>
+                <li><strong>Up Arrow + Down Arrow:</strong> Move the camera forward, and backward</li>
+                <li><strong>Dog 1 Jump:</strong> Makes the Dog jump.</li>
+                <li><strong>Dog Run Faster!!:</strong> Increases the speed of the dog.</li>
+                <li><strong>Stop Running!:</strong> Stops the dog's movement.</li>
+                <li><strong>Make Orthographic:</strong> Switches to orthographic view.</li>
+                <li><strong>Make Perspective:</strong> Switches to perspective view.</li>
+                <li><strong>Slider Eye Z:</strong> Adjusts the eye position along the Z-axis.</li>
+                <li><strong>Slider Center Z:</strong> Adjusts the center position along the Z-axis.</li>
+                <li><strong>Additional Information:</strong> The cat plays with the ball independently.</li>
+                <li><strong>Additional Information:</strong> The UFOs move independently.</li>
+            </ul>
+        </div>
+    </div>
+    
     <p>
         <input type="button" onclick="jumpDogOne()" value="Dog 1 Jump">
         <input type="button" onclick="runDog()" value="Dog Run Faster!!">
         <input type="button" onclick="stopDog()" value="Stop Running!">
         <input type="button" onclick="resetCam()" value="Reset Camera">
+        <input type="button" onclick="regen()" value="Apply New Terrain Roughness">
     </p>
-    
-    <!-- Instructions for controlling the model -->
-    <div id="instructions" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9;">
-        <h3>Model Instructions</h3>
-        <ul>
-            <li><strong>w, a, s, d:</strong> Rotate the camera on its axis</li>
-            <li><strong>Up Arrow + Down Arror:</strong> Move the camera in forward, and backwards in its direction</li>
-            <li><strong>Dog 1 Jump:</strong> Makes the Dog jump.</li>
-            <li><strong>Dog Run Faster!!:</strong> Increases the speed of the dog if it is running, or makes the dog start running.</li>
-            <li><strong>Stop Running!:</strong> Stops the dog's movement.</li>
-            <li><strong>Make Orthographic:</strong> Switches to orthographic view.</li>
-            <li><strong>Make Perspective:</strong> Switches to perspective view.</li>
-            <li><strong>Slider Eye Z:</strong> Adjusts the eye position along the Z-axis.</li>
-            <li><strong>Slider Center Z:</strong> Adjusts the center position along the Z-axis.</li>
-            <li><strong>Additional Information:</strong> The cat plays with the ball, independently with no instruction</li>
-            <li><strong>Additional Information:</strong> The UFO (cube) with a rotating handle also moves independently, as well as the rectangular UFO </li>
-        </ul>
-    </div>
+
+    <input type="range" id="roughness" min="100" max="500" value="200">
+    <p>Terrain Roughness (Editable): <span id="roughValue">200</span></p>
 
 </body>
 
