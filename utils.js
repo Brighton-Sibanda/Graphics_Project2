@@ -31,31 +31,6 @@ export function buildColorAttributes(vertex_count, color) {
     return colors;
 }
 
-
-export function buildGridAttributes(grid_row_spacing, grid_column_spacing, grid_color) {
-    const GRID_X_RANGE = 1000;
-    const GRID_Z_RANGE = 1000;
-    
-    var mesh = [];
-    var colors = [];
-
-    for (var x = -GRID_X_RANGE; x < GRID_X_RANGE; x += grid_row_spacing) {
-        mesh.push(x, 0, -GRID_Z_RANGE);
-        mesh.push(x, 0, GRID_Z_RANGE);
-    }
-
-    for (var z = -GRID_Z_RANGE; z < GRID_Z_RANGE; z += grid_column_spacing) {
-        mesh.push(-GRID_X_RANGE, 0, z);
-        mesh.push(GRID_X_RANGE, 0, z);
-    }
-
-    for (var i = 0; i < mesh.length / 3; i++) {
-        colors.push(grid_color[0], grid_color[1], grid_color[2]);
-    }
-
-    return [mesh, colors];
-}
-
 export function initVBO(gl, data) {
     var VBOloc = gl.createBuffer();
     if (!VBOloc) return false;
@@ -95,4 +70,13 @@ export function buildTerrainColors(terrain, height) {
     }
 
     return colors
+}
+
+export function buildPerVertex(colors) {
+    var colorAttributes = [];
+    colors.forEach(color => {
+        // Push each color component to the attribute array
+        colorAttributes.push(color[0], color[1], color[2]);
+    });
+    return colorAttributes;
 }

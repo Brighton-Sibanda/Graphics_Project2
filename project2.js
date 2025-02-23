@@ -3,11 +3,10 @@
 
 // CS 351 Winter 2025 Lecture 12, Lecture 10, Lecture 11, and lecture 9 code - camera projections, lookat
 // Slider event trigger functions from lecture, and terrain building functions
-// Starter Code
+// 
 
-
-import { VSHADER_SOURCE, FSHADER_SOURCE, buildColorAttributes, buildGridAttributes, initVBO, setupVec3, buildTerrainColors } from './utils.js';
-import { g_cubeMesh, g_arm1Mesh, g_arm2Mesh } from './extras.js';
+import { VSHADER_SOURCE, FSHADER_SOURCE, buildColorAttributes, initVBO, setupVec3, buildTerrainColors, buildPerVertex } from './utils.js';
+import { g_cubeMesh, g_arm1Mesh, g_arm2Mesh, cubeColorGrid, armVertexColors } from './extras.js';
 
 // Variables 
 var g_canvas;
@@ -63,7 +62,6 @@ let dogRunning = false;
 
 // Terrain Stuff
 var terrainGenerator = new TerrainGenerator();
-var seed = new Date().getMilliseconds();
 var options = {
     width: 100,
     height: 1,
@@ -109,11 +107,11 @@ function startRendering() {
         return;
     }
     var catColors = buildColorAttributes(g_catMesh.length / 3, [1, 0, 0]);
-    var ballColors = []
+    var ballColors = [];
     var dogColors = buildColorAttributes(g_dogMesh.length / 3, [0, 1, 0]);
-    var cubeColors = buildColorAttributes(g_cubeMesh.length / 3, [1, 1, 0]);
-    var arm1Colors = buildColorAttributes(g_arm1Mesh.length / 3, [0, 1, 1]);
-    var arm2Colors = buildColorAttributes(g_arm2Mesh.length / 3, [1, 0, 1]);
+    var cubeColors = buildPerVertex(cubeColorGrid);
+    var arm1Colors = buildPerVertex(armVertexColors);
+    var arm2Colors = buildPerVertex(armVertexColors);
     for (let i = 0; i < g_ballMesh.length / 3; i++) {
         ballColors.push(Math.random(), Math.random(), Math.random()); // Random for the ball
     }
