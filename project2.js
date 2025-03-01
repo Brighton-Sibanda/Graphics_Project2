@@ -3,7 +3,9 @@
 
 // CS 351 Winter 2025 Lecture 12, Lecture 10, Lecture 11, and lecture 9 code - camera projections, lookat
 // Slider event trigger functions from lecture, and terrain building functions
-// 
+// TODO: Cite the baycentric algorithm
+// TODO: Outsource code that shouldnt be here necessarily
+// TODO: 
 
 import { VSHADER_SOURCE, FSHADER_SOURCE, buildColorAttributes, initVBO, setupVec3, buildTerrainColors, buildPerVertex } from './utils.js';
 import { g_cubeMesh, g_arm1Mesh, g_arm2Mesh, cubeColorGrid, armVertexColors } from './extras.js';
@@ -42,7 +44,8 @@ var g_cubeModelMatrix;
 var g_arm1ModelMatrix;
 var g_arm2ModelMatrix;
 var g_lastFrameMS;
-var roughness = 200;
+var roughness = 100;
+var height = 5;
 
 
 // lookat information
@@ -61,16 +64,21 @@ let dogMoveProgress = 0;
 let dogRunning = false;
 
 // Terrain Stuff
+var width = 100;
+var depth = 100;
 var terrainGenerator = new TerrainGenerator();
 var options = {
-    width: 100,
-    height: 1,
-    depth: 100,
+    width: width,
+    height: height,
+    depth: depth,
     seed: 10000000000000,
     noisefn: "wave", // Other options are "simplex" and "perlin"
     roughness: roughness
 };
 var terrain = terrainGenerator.generateTerrainMesh(options)
+for (let i = 0; i < terrain.length; i++) {
+    terrain[i] = terrain[i].map(component => component * 0.2);
+}
 var g_terrainMesh = []
 for (var i = 0; i < terrain.length; i++) {
     g_terrainMesh.push(...terrain[i])
@@ -101,17 +109,24 @@ async function loadOBJFiles() {
     startRendering();
 }
 
+var catColors;
+var ballColors;
+var cubeColors;
+var arm1Colors;
+var arm2Colors;
+var dogColors;
+
 function startRendering() {
     if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
         console.log('Failed to initialize shaders.');
         return;
     }
-    var catColors = buildColorAttributes(g_catMesh.length / 3, [1, 0, 0]);
-    var ballColors = [];
-    var dogColors = buildColorAttributes(g_dogMesh.length / 3, [0, 1, 0]);
-    var cubeColors = buildPerVertex(cubeColorGrid);
-    var arm1Colors = buildPerVertex(armVertexColors);
-    var arm2Colors = buildPerVertex(armVertexColors);
+    catColors = buildColorAttributes(g_catMesh.length / 3, [1, 0, 0]);
+    ballColors = [];
+    dogColors = buildColorAttributes(g_dogMesh.length / 3, [0, 1, 0]);
+    cubeColors = buildPerVertex(cubeColorGrid);
+    arm1Colors = buildPerVertex(armVertexColors);
+    arm2Colors = buildPerVertex(armVertexColors);
     for (let i = 0; i < g_ballMesh.length / 3; i++) {
         ballColors.push(Math.random(), Math.random(), Math.random()); // Random for the ball
     }
@@ -165,7 +180,7 @@ function startRendering() {
 function draw() {
     // Set the lookat vector
     var lookatMatrix = setLookVector();
-    gl.clearColor(0.2, 0.2, 0.2, 1.0);
+    gl.clearColor(0.2, 0.0, 0.2, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // Cat Mesh
@@ -222,7 +237,9 @@ function draw() {
     )
 }
 
+
 function tick() {
+
     g_lastFrameMS = Date.now();
 
     // Initialize things that have not been
@@ -240,7 +257,13 @@ function tick() {
         bounceCat();
     }
 
+    // terrain code
     moveCubes();
+    handleCubeTerrain();
+
+    
+    //handleDogTerrain();
+    // handleArmTerrain();
 
     draw();
     requestAnimationFrame(tick, g_canvas);
@@ -248,8 +271,8 @@ function tick() {
 
 function moveCubes() {
     // 1Cube oscillation: Move back and forth
-    let maxCubeMove = 0.3; // Maximum movement distance
-    let moveSpeed = 1.5; // Speed of oscillation
+    let maxCubeMove = 2; // Maximum movement distance = 0.3
+    let moveSpeed = 0.5; // Speed of oscillation = 1.5
 
     // Smooth Oscillation in the X direction - I'll make this sinusoidal for back and forth
     let cubeXPosition = maxCubeMove * Math.sin(Date.now() * 0.002 * moveSpeed);
@@ -293,7 +316,7 @@ function init() {
     // Init the dog
     let dog_transform = new Matrix4();
     dog_transform.setRotate(240, 1, 1, 1);
-    dog_transform.translate(0, -0.5, -0.5);
+    dog_transform.translate(0, -1.5, -0.5); // reset y to -0.5 if problems
     g_modelMatrices[1] = dog_transform.multiply(g_modelMatrices[1]);
 
     // Init the ball
@@ -301,10 +324,11 @@ function init() {
     ball_transform.setRotate(240, 1, 1, 1);
     ball_transform.translate(0.3, -0.5, -0.3);
     g_modelMatrices[2] = ball_transform.multiply(g_modelMatrices[2]);
-
+    /*
     // Initialize cube transformation
     let cube_transform = new Matrix4();
-    cube_transform.setScale(2.05, 2.05, 2.05); // Scale up
+    cube_transform.setScale(1, 1, 1); // Scale up 2.05
+    // cube_transform.translate(0, -15,0 );
     g_cubeModelMatrix = cube_transform;
 
     // Initialize arm
@@ -312,7 +336,8 @@ function init() {
     g_arm1ModelMatrix = arm1_transform;
 
     let arm2_transform = new Matrix4();
-    g_arm2ModelMatrix = arm2_transform;
+    g_arm2ModelMatrix = arm2_transform;*/
+
 }
 
 // Dog one jumping
@@ -416,7 +441,7 @@ function moveDog() {
     if (!dogRunning) {
         return;
     }
-    if (dogMoveProgress < 50) {
+    if (dogMoveProgress < 150) {
         let dog_transform = new Matrix4();
         dog_transform.translate(dogMovingForward ? 0.02 : -0.02, 0, 0);
         g_modelMatrices[1] = dog_transform.multiply(g_modelMatrices[1]);
@@ -561,6 +586,8 @@ function setLookVector() {
     );
 }
 
+// terrain functions
+
 function regen() {
     // change g_terrain mesh
     // apply buffer subData
@@ -568,13 +595,17 @@ function regen() {
     // TODO: Edit roughness from slider
     options = {
         width: 100,
-        height: 1,
+        height: height,
         depth: 100,
         seed: 10000000000000,
         noisefn: "wave", // Other options are "simplex" and "perlin"
         roughness: roughness
     };
     terrain = terrainGenerator.generateTerrainMesh(options);
+    for (let i = 0; i < terrain.length; i++) {
+        terrain[i] = terrain[i].map(component => component * 0.2);
+    }
+    filteredTerrain = terrain.filter(point => Math.abs(point[2] - 10) <= epsilon);
     g_terrainMesh = [];
     for (var i = 0; i < terrain.length; i++) {
         g_terrainMesh.push(...terrain[i]);
@@ -586,6 +617,82 @@ function regen() {
     let offset2 = offset + (FLOAT_SIZE * (g_terrainMesh.length + catColors.length + dogColors.length + ballColors.length + cubeColors.length + arm1Colors.length + arm2Colors.length));
     gl.bufferSubData(gl.ARRAY_BUFFER, offset2, new Float32Array(terrainColors));
 }
+
+function getTerrainHeight(x, terrain) {
+    let closestPoint = null;
+    let minDistance = Infinity;
+
+    for (let point of terrain) {
+        let distance = Math.abs(point[0] - x); // Only compare the x distances
+        if (distance < minDistance) {
+            minDistance = distance;
+            closestPoint = point;
+        }
+    }
+
+    // Return the height of the closest point
+    return closestPoint ? closestPoint[1] : null;
+}
+
+const epsilon = 0.1; // Adjust epsilon as needed to define "very close"
+
+let filteredTerrain = terrain.filter(point => Math.abs(point[2] - 10) <= epsilon);
+console.log(filteredTerrain)
+function handleCubeTerrain() {
+
+    let modelX = g_cubeModelMatrix.elements[12] + 10; // Cube X position
+    let modelZ = g_cubeModelMatrix.elements[14] + 10; // Cube Z position
+    let modelY = g_cubeModelMatrix.elements[13];
+
+    let height = getTerrainHeight(modelX, filteredTerrain);
+    console.log("height", height);
+    console.log("model one is,", modelX, modelY, modelZ)
+    let need = height;
+    let temp_transform = new Matrix4().translate(0, need - modelY - 0.5, 0);
+    g_cubeModelMatrix = temp_transform.multiply(g_cubeModelMatrix);
+    console.log("model is now,", modelX, g_cubeModelMatrix.elements[13], modelZ)
+
+    // for arm 2
+    temp_transform = new Matrix4().translate(0, need - modelY - 0.5, 0);
+    g_arm2ModelMatrix = temp_transform.multiply(g_arm2ModelMatrix);
+}
+
+/*
+function handleDogTerrain() {
+    let modelX = g_modelMatrices[1].elements[12] + 10; // dog X position
+    let modelZ = g_modelMatrices[1].elements[14] + 10; // dog Z position
+    let modelY = g_modelMatrices[1].elements[13];
+
+    let height = getTerrainHeight(modelX, modelZ, terrain);
+    let newHeight = lerp(modelY, height, 0.5);
+    let temp_transform = new Matrix4().translate(0, newHeight - modelY, 0);
+    g_modelMatrices[1] = temp_transform.multiply(g_modelMatrices[1]);
+}
+
+function lerp(start, end, t) {
+    return start + (end - start) * t; 
+}
+*/
+
+function handleArmTerrain() {
+    let modelX = g_arm1ModelMatrix.elements[12] + 10; // dog X position
+    let modelZ = g_arm1ModelMatrix.elements[14] + 10; // dog Z position
+    let modelY = g_arm1ModelMatrix.elements[13] - 1.5;
+    console.log("Arm2 z", modelZ)
+
+    let height = getTerrainHeight(modelX, modelZ, filteredTerrain);
+   
+    let temp_transform = new Matrix4().translate(0, height - modelY - 0.5, 0);
+    g_arm1ModelMatrix = temp_transform.multiply(g_arm1ModelMatrix);
+}
+
+
+// handleCubeTerrain
+// handleArmTerrain
+// handleDogTerrain
+// handleBallTerrain
+// handleCatTerrain
+
 
 // export to html
 window.main = main;
