@@ -27,6 +27,7 @@
             <ul>
                 <li><strong>w, a, s, d:</strong> Rotate the camera on its axis (make sure caps lock is off)</li>
                 <li><strong>Up Arrow + Down Arrow:</strong> Move the camera forward, and backward</li>
+                <li><strong>i, j, k, l:</strong> Move the user-controlled sphere (i=forward, k=backward, j=left, l=right)</li>
                 <li><strong>Reset Camera:</strong> Returns the camera to its default position</li>
                 <li><strong>Apply New Terrain Roughness:</strong> Regenerates the terrain with the current roughness setting</li>
             </ul>
@@ -38,9 +39,10 @@
         <input type="button" onclick="regen()" value="Apply New Terrain Roughness">
     </p>
 
-    <input type="range" id="roughness" min="100" max="500" value="200">
+    <input type="range" id="roughness" min="0" max="500" value="200">
     <p>Terrain Roughness (Editable): <span id="roughValue">200</span></p>
 
 </body>
 
 </html>
+

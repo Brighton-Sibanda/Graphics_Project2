@@ -127,3 +127,49 @@ export const armVertexColors = [
     [0.2, 0.2, 0.2], [0.8, 0.8, 0.8], [0.3, 0.3, 0.3]
 ];
 
+// Function to generate vertices for a sphere
+function generateSphereMesh(radius, segments) {
+    const vertices = [];
+    const colors = []; // Placeholder for vertex colors, adjust as needed
+
+    for (let i = 0; i <= segments; i++) {
+        let lat = Math.PI * (i / segments - 0.5);
+        for (let j = 0; j <= segments; j++) {
+            let lon = 2 * Math.PI * (j / segments);
+
+            let x = radius * Math.cos(lat) * Math.cos(lon);
+            let y = radius * Math.cos(lat) * Math.sin(lon);
+            let z = radius * Math.sin(lat);
+
+            vertices.push(x, y, z);
+
+            // Example: Add color data, this is just an example and should be adjusted
+            colors.push(
+                Math.abs(Math.sin(lon)), // Red channel
+                Math.abs(Math.cos(lon)), // Green channel
+                Math.abs(Math.sin(lat))  // Blue channel
+            );
+        }
+    }
+
+    // Generate faces
+    const indices = [];
+    for (let i = 0; i < segments; i++) {
+        for (let j = 0; j < segments; j++) {
+            let first = (i * (segments + 1)) + j;
+            let second = first + segments + 1;
+
+            indices.push(first, second, first + 1);
+            indices.push(second, second + 1, first + 1);
+        }
+    }
+
+    return { vertices, indices, colors };
+}
+
+// Usage: create a sphere mesh with a specified radius and number of segments (detail level)
+const sphereMesh = generateSphereMesh(1.0, 10); // Adjust radius and segments as needed
+
+// Example usage in your mesh structure
+export const g_sphereMesh = sphereMesh.vertices;
+export const sphereColorGrid = sphereMesh.colors;
