@@ -25,11 +25,16 @@
         <div id="instructions" style="margin-left: 20px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9; width: 700px;">
             <h3>Model Instructions</h3>
             <ul>
-                <li><strong>w, a, s, d:</strong> Rotate the camera on its axis (make sure caps lock is off)</li>
+                <li><strong>w, a, s, d:</strong> Rotate the camera. w = up, s = down, a = left, d = right (caps lock off)</li>
                 <li><strong>Up Arrow + Down Arrow:</strong> Move the camera forward, and backward</li>
-                <li><strong>i, j, k, l:</strong> Move the user-controlled sphere (i=forward, k=backward, j=left, l=right)</li>
+                <li><strong>j, l:</strong> Move the user-controlled ball (j=left, l=right)</li>
                 <li><strong>Reset Camera:</strong> Returns the camera to its default position</li>
                 <li><strong>Apply New Terrain Roughness:</strong> Regenerates the terrain with the current roughness setting</li>
+                <li><strong>Roughness (slider):</strong> Set a new roughness for the terrain - then click on Apply New Terrain Roughness</li>
+            </ul>
+            <h3>Note</h3>
+            <ul>
+                <li><strong>ball visibility:</strong> The ball is in a valley initially - press j to move it so you may start seeing it over peaks</li>
             </ul>
         </div>
     </div>
@@ -40,7 +45,7 @@
     </p>
 
     <input type="range" id="roughness" min="0" max="500" value="60">
-    <p>Terrain Roughness (Editable): <span id="roughValue">200</span></p>
+    <p>Terrain Roughness (Editable): <span id="roughValue">60</span></p>
 
 </body>
 
